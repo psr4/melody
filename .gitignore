@@ -137,3 +137,6 @@ dist-ssr
 *.sln
 *.sw?
 
+
+# local runtime data
+/.profile

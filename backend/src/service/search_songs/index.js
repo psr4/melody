@@ -1,4 +1,4 @@
-const { searchSongFromAllPlatform } = require('../media_fetcher');
+const { searchSongFromAllPlatform, fillSearchResultCover } = require('../media_fetcher');
 const searchSongsWithSongMeta = require('./search_songs_with_song_meta');
 const findTheBestMatchFromWyCloud = require('./find_the_best_match_from_wycloud');
 
@@ -8,7 +8,9 @@ async function searchSongsWithKeyword(keyword) {
         return [];
     }
 
-    return searchList;
+    // The search result from media-get does not contain a cover.
+    // Fetch the cover of each song for display.
+    return await fillSearchResultCover(searchList);
 }
 
 

@@ -137,7 +137,7 @@
                           placement="bottom"
                         >
                           <el-link
-                            @click="uploadToCloud(songMetaInfo.pageUrl)"
+                            @click="openUploadDialog(songMetaInfo)"
                             :underline="false"
                             :disabled="!wyAccount ? true : false"
                             style="
@@ -231,6 +231,13 @@
         </div>
       </el-row>
     </transition>
+
+    <UploadSongDialog
+      v-model:visible="showUploadDialog"
+      :song-url="uploadSongUrl"
+      :suggest-match-song-id="suggestMatchSongId"
+      :default-meta="uploadSongMeta"
+    />
   </el-main>
 </template>
 
@@ -242,6 +249,7 @@ import {
   getGlobalConfig,
 } from "../../api";
 import SearchResultTable from "../../components/SearchResultTable.vue";
+import UploadSongDialog from "../../components/UploadSongDialog.vue";
 import { secondDurationToDisplayDuration, sourceCodeToName } from "../../utils";
 import { startTaskListener } from "../../components/TaskNotification";
 import storage from "../../utils/storage";
@@ -258,6 +266,9 @@ export default {
       searchResult: [],
       wyAccount: null,
       globalConfig: null,
+      showUploadDialog: false,
+      uploadSongUrl: "",
+      uploadSongMeta: {},
     };
   },
   props: {
@@ -296,15 +307,18 @@ export default {
   },
   components: {
     SearchResultTable,
+    UploadSongDialog,
   },
   methods: {
-    async uploadToCloud(pageUrl) {
-      const ret = await createSyncSongFromUrlJob(pageUrl);
-      console.log(ret);
-
-      if (ret.data && ret.data.jobId) {
-        startTaskListener(ret.data.jobId);
-      }
+    openUploadDialog(songMeta) {
+      this.uploadSongUrl = songMeta.pageUrl;
+      this.uploadSongMeta = {
+        songName: songMeta.songName,
+        artist: songMeta.artist,
+        album: songMeta.album ? songMeta.album.replace(/《|》/g, "") : "",
+        coverUrl: songMeta.coverUrl || "",
+      };
+      this.showUploadDialog = true;
     },
     async loadGlobalConfig() {
       const globalConfig = await getGlobalConfig();

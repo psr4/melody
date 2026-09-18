@@ -43,7 +43,8 @@ module.exports = async function findTheBestMatchFromWyCloud(uid, {songName, arti
             continue;
         }
 
-        if (searchItem.songName === songName) {
+        // 歌名比较时忽略空格/标点差异，如 "Letting Go" vs "LettingGo"
+        if (normalizeSongName(searchItem.songName) === normalizeSongName(songName)) {
             if (searchItem.album === album) {
                 logger.info('matched the best')
                 return searchItem;
@@ -54,4 +55,8 @@ module.exports = async function findTheBestMatchFromWyCloud(uid, {songName, arti
         }
     }
     return matchSongAndArtist;
+}
+
+function normalizeSongName(name) {
+    return (name || '').replace(/[\s·,，。.!！?？'"'"'`~～\-—()（）\[\]【】《》|｜:：/\\]/g, '').toLowerCase();
 }

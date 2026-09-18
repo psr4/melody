@@ -89,6 +89,9 @@
       <van-tabbar-item icon="like-o" to="/playlist" @click="playlist()"
         >歌单</van-tabbar-item
       >
+      <van-tabbar-item icon="cloud-o" to="/cloud" @click="cloudDisk()"
+        >云盘</van-tabbar-item
+      >
       <van-tabbar-item icon="contact" to="/account" @click="account()"
         >音乐账号</van-tabbar-item
       >
@@ -146,6 +149,9 @@ export default {
     playlist() {
       this.$router.push("/playlist");
     },
+    cloudDisk() {
+      this.$router.push("/cloud");
+    },
     async playTheSong(metaInfo, pageUrl, suggestMatchSongId) {
       console.log("------------------------");
       console.log(metaInfo);
@@ -187,6 +193,11 @@ export default {
         }
         playOption.playUrl = playUrlRet.data.playUrl;
       }
+      playOption.playUrl = getProperPlayUrl(
+        playOption.source,
+        playOption.playUrl,
+        playOption.pageUrl
+      );
       this.songInfos.push(playOption);
       this.currentSongIndex = this.songInfos.length - 1;
       this.changedTime = new Date().getTime();

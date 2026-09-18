@@ -1,4 +1,4 @@
-import { get, post} from "./axios";
+import { get, post, axiosDelete } from "./axios";
 
 export const searchSongs = data => get("/songs", data);
 export const getSongsMeta = data => get("/songs-meta", data);
@@ -11,14 +11,21 @@ export const qrLoginCheck = qrKey => get("/account/qrlogin-check", {qrKey});
 
 export const getAllPlaylist = data => get("/playlists", data);
 export const getPlaylistDetail = playlistId => get(`/playlists/netease/${playlistId}/songs`);
+export const getCloudSongs = data => get("/cloud-songs", data);
+export const deleteCloudSong = songId => axiosDelete(`/cloud-songs/${songId}`);
 export const getJobDetail = jobId => get(`/sync-jobs/${jobId}`);
-export const createSyncSongFromUrlJob = (url, songId = "") => {
+export const createSyncSongFromUrlJob = (url, songId = "", meta = {}) => {
     return post("/sync-jobs", {
         "jobType": "SyncSongFromUrl",
         "urlJob": {
             "url": url,
             "meta": {
-                "songId": songId
+                "songId": songId,
+                "songName": meta.songName || "",
+                "artist": meta.artist || "",
+                "album": meta.album || "",
+                "coverUrl": meta.coverUrl || "",
+                "matchOfficial": meta.matchOfficial !== false,
             }
         }
     });

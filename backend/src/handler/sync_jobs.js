@@ -70,10 +70,13 @@ async function createJob(req, res) {
                 songName: request.urlJob.meta.songName,
                 artist: request.urlJob.meta.artist,
                 album : request.urlJob.meta.album ? request.urlJob.meta.album : "",
+                coverUrl: request.urlJob.meta.coverUrl ? request.urlJob.meta.coverUrl : "",
+                // 默认匹配官方歌曲（获取歌词/官方封面）；关闭则保留自定义信息
+                matchOfficial: request.urlJob.meta.matchOfficial !== false,
             };
         }
     
-        if (songId) {
+        if (songId && meta.matchOfficial !== false) {
             const songFromWyCloud = await findTheBestMatchFromWyCloud(req.account.uid, {
                 songName: meta.songName,
                 artist: meta.artist,

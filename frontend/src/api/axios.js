@@ -72,3 +72,19 @@ export const get = (url, data) => {
             })
     })
 }
+
+export const axiosDelete = (url, data) => {
+    return new Promise((resolve, reject) => {
+        axiosApiInstance({
+                method: 'delete',
+                url,
+                params: data,
+            })
+            .then(res => {
+                resolve(res ? res.data : false)
+            })
+            .catch(err => {
+                reject(err)
+            })
+    })
+}

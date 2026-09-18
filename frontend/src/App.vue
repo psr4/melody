@@ -133,12 +133,7 @@
                   circle
                   class="operation-btn"
                   :disabled="!playerSongInfo.pageUrl || !wyAccount"
-                  @click="
-                    uploadToCloud(
-                      playerSongInfo.pageUrl,
-                      playerSongInfo.suggestMatchSongId
-                    )
-                  "
+                  @click="openUploadDialog(playerSongInfo)"
                 >
                   <i class="bi bi-cloud-upload"></i>
                 </el-button>
@@ -158,6 +153,13 @@
           </el-row>
         </div>
       </el-footer>
+
+      <UploadSongDialog
+        v-model:visible="showUploadDialog"
+        :song-url="uploadSongUrl"
+        :suggest-match-song-id="uploadSongSuggestMatchSongId"
+        :default-meta="uploadSongMeta"
+      />
     </el-container>
   </div>
 </template>
@@ -165,6 +167,7 @@
 <script>
 import { getPlayUrl, getSongsMeta, createSyncSongFromUrlJob } from "./api";
 import { startTaskListener } from "./components/TaskNotification";
+import UploadSongDialog from "./components/UploadSongDialog.vue";
 import storage from "./utils/storage";
 import { getProperPlayUrl } from "./utils/audio";
 
@@ -180,14 +183,22 @@ export default {
         suggestMatchSongId: "",
       },
       wyAccount: null,
+      showUploadDialog: false,
+      uploadSongUrl: "",
+      uploadSongSuggestMatchSongId: "",
+      uploadSongMeta: {},
       navItems: [
         { label: "搜索", path: "/", icon: "bi bi-search" },
         { label: "我的歌单", path: "/playlist", icon: "bi bi-music-note-list" },
+        { label: "网易云云盘", path: "/cloud", icon: "bi bi-cloud" },
         { label: "我的音乐账号", path: "/account", icon: "bi bi-person" },
         { label: "设置", path: "/setting", icon: "bi bi-gear" },
       ],
       currentPath: "/",
     };
+  },
+  components: {
+    UploadSongDialog,
   },
   mounted() {
     this.wyAccount = storage.get("wyAccount");
@@ -199,6 +210,17 @@ export default {
     },
   },
   methods: {
+    openUploadDialog(songInfo) {
+      this.uploadSongUrl = songInfo.pageUrl;
+      this.uploadSongSuggestMatchSongId = songInfo.suggestMatchSongId || "";
+      this.uploadSongMeta = {
+        songName: songInfo.songName,
+        artist: songInfo.artist,
+        album: songInfo.album || "",
+        coverUrl: songInfo.coverUrl || "",
+      };
+      this.showUploadDialog = true;
+    },
     async uploadToCloud(pageUrl, suggestMatchSongId) {
       const ret = await createSyncSongFromUrlJob(pageUrl, suggestMatchSongId);
       console.log(ret);

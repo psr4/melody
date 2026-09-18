@@ -13,6 +13,7 @@ module.exports = async function uploadWithRetryThenMatch(uid, path, songInfo, so
             logger.info(`upload song failed, try again: ${path}`);
         }
         uploadResult = await uploadSong(uid, path);
+        logger.info(`uploadSong result: ${JSON.stringify(uploadResult)}`);
         if (uploadResult === false) {
             logger.error(`upload song failed, uid: ${uid}, path: ${path}`);
             await sleep(3000);

@@ -172,9 +172,40 @@ async function searchSongFromAllPlatform({
     })
 }
 
+// Fetch the cover of each search item with limited concurrency.
+// The search result from media-get does not contain a cover, so we
+// fetch the media meta of each url to fill the cover field.
+async function fillSearchResultCover(searchList) {
+    const concurrency = 5;
+    const list = searchList.filter(item => item.url);
+    let index = 0;
+
+    const worker = async () => {
+        while (index < list.length) {
+            const item = list[index++];
+            try {
+                const meta = await getMetaWithUrl(item.url);
+                if (meta !== false && meta.coverUrl) {
+                    item.cover = meta.coverUrl;
+                }
+            } catch (error) {
+                logger.warn(`fetch cover failed for ${item.url}:`, error.message);
+            }
+        }
+    };
+
+    const workers = [];
+    for (let i = 0; i < Math.min(concurrency, list.length); i++) {
+        workers.push(worker());
+    }
+    await Promise.all(workers);
+    return searchList;
+}
+
 module.exports = {
     downloadViaSourceUrl: downloadViaSourceUrl,
     fetchWithUrl: fetchWithUrl,
     getMetaWithUrl: getMetaWithUrl,
     searchSongFromAllPlatform: searchSongFromAllPlatform,
+    fillSearchResultCover: fillSearchResultCover,
 }

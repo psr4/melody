@@ -16,6 +16,11 @@ const routes = [
         name: "Playlist",
         component: () => import('../views/mobile/Playlist.vue')   
     },
+    {
+        path: '/cloud',
+        name: "CloudDisk",
+        component: () => import('../views/mobile/CloudDisk.vue')   
+    },
 ]
 export const router = createRouter({
   history: createWebHashHistory(),
@@ -32,7 +37,7 @@ router.beforeEach((to, from, next) => {
     if (!mk) {
         next("/account");
     }
-    if (to.path === "/playlist" && !wyAccount) {
+    if (["/playlist", "/cloud"].includes(to.path) && !wyAccount) {
         next("/account");
         return;
     }

@@ -20,6 +20,11 @@ const routes = [
         component: () => import('../views/pc/Playlist.vue')   
     },
     {
+        path: '/cloud',
+        name: "CloudDisk",
+        component: () => import('../views/pc/CloudDisk.vue')   
+    },
+    {
         path: PathSetting,
         name: "Setting",
         component: () => import('../views/pc/Setting.vue')   
@@ -40,7 +45,7 @@ router.beforeEach((to, from, next) => {
     if (!mk) {
         next("/account");
     }
-    if ([PathPlaylist].includes(to.path) && !wyAccount) {
+    if ([PathPlaylist, "/cloud"].includes(to.path) && !wyAccount) {
         next("/account");
         return;
     }

@@ -14,6 +14,23 @@
   >
     <el-table-column type="index" width="60" align="center" />
 
+    <el-table-column label="封面" width="80" align="center">
+      <template #default="scope">
+        <el-image
+          class="cover-image"
+          :src="scope.row.cover"
+          fit="cover"
+          :preview-src-list="scope.row.cover ? [scope.row.cover] : []"
+        >
+          <template #error>
+            <div class="cover-placeholder">
+              <i class="bi bi-music-note-beamed"></i>
+            </div>
+          </template>
+        </el-image>
+      </template>
+    </el-table-column>
+
     <el-table-column label="歌曲" min-width="300" prop="songName">
       <template #default="scope">
         <div class="song-name-cell">
@@ -94,7 +111,7 @@
               <el-button
                 type="success"
                 circle
-                @click="uploadToCloud(scope.row.url)"
+                @click="openUploadDialog(scope.row)"
                 :disabled="!wyAccount"
                 class="operation-btn"
               >
@@ -136,6 +153,13 @@
       </template>
     </el-table-column>
   </el-table>
+
+  <UploadSongDialog
+    v-model:visible="showUploadDialog"
+    :song-url="uploadSongUrl"
+    :suggest-match-song-id="suggestMatchSongId"
+    :default-meta="uploadSongMeta"
+  />
 </template>
 
 <style scoped>
@@ -144,6 +168,24 @@
   border-radius: 8px;
   overflow: hidden;
   box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.05);
+}
+
+.cover-image {
+  width: 40px;
+  height: 40px;
+  border-radius: 4px;
+}
+
+.cover-placeholder {
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  color: #c0c4cc;
+  font-size: 18px;
+  background: #f5f7fa;
 }
 
 .song-name-cell {
@@ -215,6 +257,7 @@ import {
 } from "../api";
 import { startTaskListener } from "../components/TaskNotification";
 import storage from "../utils/storage";
+import UploadSongDialog from "./UploadSongDialog.vue";
 
 export default {
   data() {
@@ -222,6 +265,9 @@ export default {
       currentSongUrl: -1,
       wyAccount: null,
       globalConfig: {},
+      showUploadDialog: false,
+      uploadSongUrl: "",
+      uploadSongMeta: {},
     };
   },
   props: {
@@ -246,6 +292,9 @@ export default {
     this.wyAccount = storage.get("wyAccount");
     this.loadGlobalConfig();
   },
+  components: {
+    UploadSongDialog,
+  },
   setup(props, { emit }) {
     const playTheSong = (songMeta, pageUrl, suggestMatchSongId) => {
       props.playTheSong(songMeta, pageUrl, suggestMatchSongId);
@@ -267,16 +316,15 @@ export default {
     },
   },
   methods: {
-    async uploadToCloud(pageUrl) {
-      const ret = await createSyncSongFromUrlJob(
-        pageUrl,
-        this.suggestMatchSongId
-      );
-      console.log(ret);
-
-      if (ret.data && ret.data.jobId) {
-        startTaskListener(ret.data.jobId);
-      }
+    openUploadDialog(song) {
+      this.uploadSongUrl = song.url;
+      this.uploadSongMeta = {
+        songName: song.songName,
+        artist: song.artist,
+        album: song.album ? song.album.replace(/《|》/g, "") : "",
+        coverUrl: song.cover || "",
+      };
+      this.showUploadDialog = true;
     },
     async downloadToLocalService(pageUrl) {
       const ret = await createDownloadSongFromUrlJob(

@@ -4,6 +4,7 @@ const SyncJob = require('./handler/sync_jobs');
 const Songs = require('./handler/songs');
 const SongMeta = require('./handler/song_meta');
 const Playlists = require('./handler/playlists');
+const Cloud = require('./handler/cloud');
 const Account = require('./handler/account');
 const MediaFetcherLib = require('./handler/media_fetcher_lib');
 const Config = require('./handler/config');
@@ -23,6 +24,9 @@ router.get('/api/songs-meta', asyncWrapper(SongMeta.getMeta));
 
 router.get('/api/playlists', asyncWrapper(Playlists.listAllPlaylists));
 router.get('/api/playlists/:source/:id/songs', asyncWrapper(Playlists.listSongsFromPlaylist));
+
+router.get('/api/cloud-songs', asyncWrapper(Cloud.listCloudSongs));
+router.delete('/api/cloud-songs/:songId', asyncWrapper(Cloud.deleteCloudSong));
 
 router.get('/api/account', asyncWrapper(Account.get));
 router.post('/api/account', asyncWrapper(Account.set));

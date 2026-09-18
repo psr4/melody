@@ -3,6 +3,7 @@ const {
     cloud, cloudsearch, cloud_match, song_detail, song_url,
     user_playlist, playlist_detail, user_account, playlist_track_all,
     login_qr_check, login_qr_create, login_qr_key,
+    user_cloud, user_cloud_del,
 } = require('NeteaseCloudMusicApi');
 const fs = require('fs');
 const path = require('path');
@@ -270,6 +271,54 @@ async function getBlockedSongsFromPlaylist(uid, source, playlistId) {
     return info;
 }
 
+async function getMyCloudSongs(uid, offset = 0, limit = 30) {
+    const response = await safeRequest(uid, user_cloud, {
+        offset,
+        limit,
+    });
+    if (response === false || !response.data) {
+        return false;
+    }
+    // user_cloud (NeteaseCloudMusicApi 4.6.7) 返回 {0: song, 1: song, ..., updateTime}
+    const data = response.data;
+    let songsList = Array.isArray(data)
+        ? data
+        : Object.keys(data).filter(key => !isNaN(parseInt(key))).map(key => data[key]);
+
+    if (songsList.length === 0) {
+        return false;
+    }
+
+    const songs = songsList.map(song => {
+        const simpleSong = song.simpleSong || {};
+        return {
+            songId: simpleSong.id || song.songId,
+            songName: simpleSong.name || song.songName || song.fileName || '',
+            artists: (simpleSong.ar || []).map(artist => artist.name).filter(a => a !== '' && a !== undefined),
+            album: (simpleSong.al && simpleSong.al.name) || song.album || '',
+            cover: (simpleSong.al && simpleSong.al.picUrl) || song.cover || '',
+            fileSize: song.fileSize || 0,
+            addTime: song.addTime || 0,
+            playTime: song.playTime || 0,
+        };
+    });
+
+    return {
+        count: response.count || songs.length,
+        songs,
+    };
+}
+
+async function deleteCloudSong(uid, songId) {
+    const response = await safeRequest(uid, user_cloud_del, {
+        id: songId,
+    });
+    if (response === false) {
+        return false;
+    }
+    return response.code === 200;
+}
+
 async function qrLoginCreate(uid) {
     const keyResponse = await safeRequest(uid, login_qr_key, {}, false);
     if (keyResponse === false || !keyResponse.data.unikey) {
@@ -333,4 +382,6 @@ module.exports = {
     qrLoginCreate: qrLoginCreate,
     qrLoginCheck: qrLoginCheck,
     verifyAccountStatus: verifyAccountStatus,
+    getMyCloudSongs: getMyCloudSongs,
+    deleteCloudSong: deleteCloudSong,
 }
